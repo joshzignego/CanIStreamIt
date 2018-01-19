@@ -1,9 +1,9 @@
-# CanIStreamIt
+# Can I Stream It?
 Chrome extension that tells if the move/TV show with most similar title to the highlighted text is available to stream on Netflix, Hulu, Amazon Prime and HBO. 
 
 https://chrome.google.com/webstore/detail/can-i-stream-it/bgmliogjeibnfngnflhbhimclniedpab
 
- # Example use
+ # Example Use
  
  1) Go to any webpage in Google Chrome.
  
