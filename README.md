@@ -5,3 +5,4 @@ https://chrome.google.com/webstore/detail/can-i-stream-it/bgmliogjeibnfngnflhbhi
 
  # Example use
  
+![alt text](https://github.com/joshzignego/CanIStreamIt/screenshot1.png)
