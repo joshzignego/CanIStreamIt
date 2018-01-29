@@ -5,10 +5,14 @@
 var textSelection = "";
 
 //Null if no link to the site, not null if link to that site
-var netflix = "";               //https://www.netflix.com/search?q=the%20office
-var hulu = "";                  //https://www.hulu.com/search?q=rick%20and%20morty
-var amazon = "";                //https://www.amazon.com/s/ref=nb_sb_noss_1?url=search-alias%3Dinstant-video&field-keywords=mr+robot
-var hbo = "";                   //https://play.hbogo.com - no unique url for search
+var netflix = "";
+var netflixURL = "";            //https://www.netflix.com/search?q=the%20office
+var hulu = "";
+var huluURL = "";               //https://www.hulu.com/search?q=rick%20and%20morty
+var amazon = "";
+var amazonURL = "";             //https://www.amazon.com/s/ref=nb_sb_noss_1?url=search-alias%3Dinstant-video&field-keywords=mr+robot
+var hbo = "";
+var hboURL = "";                //https://play.hbogo.com - no unique url for search
 
 //The title of the top result
 var title = "";
@@ -38,7 +42,7 @@ chrome.runtime.onMessage.addListener(
 function getAvailabilities()
 {
     //Reset to null from previous time browser action clicked
-    netflix = hulu = amazon = hbo = "";
+    title = netflix = hulu = amazon = hbo = netflixURL = huluURL = amazonURL = hboURL = "";
 
     //If no text selected, send alert to content.js
     if (textSelection.localeCompare("") === 0) {
@@ -52,71 +56,80 @@ function getAvailabilities()
         });
     }
 
-    var url = "https://reelgood.com/search/" + textSelection;
+    //A call to the Google JSON/Atom Custom Search API
+    var googleURL = "https://www.googleapis.com/customsearch/v1?key=AIzaSyCp4aH-jO9uMyFc-yKV1PdXpOPxGX2eFzc&cx=010725933407033176448:vsl9jyazche&q=" + textSelection;
+    //custom search engine: 010725933407033176448:vsl9jyazche  apikey: AIzaSyCp4aH-jO9uMyFc-yKV1PdXpOPxGX2eFzc
 
-    //Get HTML of https://reelgood.com/search/the%20office or whatever is searched
+
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
+    xhr.open("GET", googleURL, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
 
-            //Set html of background.html to be html of the search page
+            //items has the top 10 search results
+            var results = (JSON.parse(xhr.responseText)).items;
+
+            //For debugging
             document.getElementById("shell").innerHTML = xhr.responseText;
 
-            //All html needed exists within this div
-            var appmount = document.getElementById("app_mountpoint");
+            //If an IMDB link exists, use that for the title
+            for(var j = 0; j < 10; j++) {
+                if (results[j].link.includes("www.imdb.com/title/")) {
+                    title = results[j].title.split(" (")[0];
+                }
+            }
 
-            //Div class names constantly changing, so must get top result's div this way
-            var topResult = appmount.childNodes[2].childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0].childNodes[0];
+            //Go thru each link & see if it goes to a streaming service
+            for(var i = 0; i < 10; i++) {
+                if (results[i].link.includes("https://www.netflix.com/title/") && netflix.localeCompare("") === 0) {
+                    netflix = "Netflix";
+                    netflixURL = results[i].link;
 
-            //Get link to top search result's own page
-            var linkToTopResult = topResult.getAttribute("href");
+                    if (title.localeCompare("") === 0) {
+                        title = results[i].title.split(" | ")[0];
+                    }
+                }
 
-            var linkToPage = "https://reelgood.com" + linkToTopResult;//url for next page
+                if (results[i].link.includes("https://www.hulu.com/") && hulu.localeCompare("") === 0) {
+                    hulu = "Hulu";
+                    huluURL = results[i].link;
 
-            //Use for debugging
-            //document.getElementById("shell").innerHTML = linkToPage;
+                    if (title.localeCompare("") === 0) {
+                        if (results[i].title.includes("Watch") && results[i].title.includes("Online at Hulu")) {
 
-            //Get html of second page with streaming info of top result now that we have its url
-            request2(linkToPage);
-        }
-    }
-    xhr.send();
-}
+                            //Get text between Watch and Online as title
+                            var tempTitle = results[i].title;
+                            var regex = /(.*Watch\s+)(.*)(\s+Online.*)/;
+                            title = tempTitle.replace(regex, "$2");
+                        }
+                    }
+                }
 
-//Get treaming availabilities based on top search result's html page
-function request2(url) {
-    var xhr2 = new XMLHttpRequest();
-    xhr2.open("GET", url, true);
+                if (results[i].link.includes("https://www.amazon.com/") && amazon.localeCompare("") === 0) {
+                    amazon = "Amazon Prime";
+                    amazonURL = results[i].link;
 
-    xhr2.onreadystatechange = function() {
-        if (xhr2.readyState == 4) {
+                    if (title.localeCompare("") === 0) {
+                        if (results[i].title.includes("Amazon.com")) {
 
-            //Set html of background.html to be html of the result's page
-            document.getElementById("shell").innerHTML = xhr2.responseText;
+                            //Get string after Amazon.com
+                            var tempTitle = results[i].title;
+                            var amzncom = "Amazon.com";
+                            title = tempTitle.slice(tempTitle.indexOf(amzncom) + amzncom.length);
+                        }
+                    }
+                }
+                if (results[i].link.includes("https://www.hbo.com/") && hbo.localeCompare("") === 0) {
+                    hbo = "HBO";
+                    hboURL = results[i].link;
 
-            var appmount = document.getElementById("app_mountpoint");
-
-            //Set title as page's title
-            title = appmount.childNodes[2].childNodes[0].childNodes[4].childNodes[1].childNodes[0].innerHTML;
-
-
-            var streamingOptions = appmount.childNodes[2].childNodes[0].childNodes[4].childNodes[1].childNodes[1].childNodes[3].childNodes[1];
-
-            //Convert html element into a string
-            streamingOptions = nodeToString(streamingOptions);
+                    if (title.localeCompare("") === 0) {
+                        title = results[i].title.split(" - ")[0];
+                    }
+                }
+            }
 
             var heading = "";
-
-            //If streaming option in result's div, update the streaming variable's result
-            if (streamingOptions.includes("Hulu"))
-                hulu = "Hulu";
-            if (streamingOptions.includes("Netflix"))
-                netflix = "Netflix";
-            if (streamingOptions.includes("HBO"))
-                hbo = "HBO Go";
-            if (streamingOptions.includes("Amazon"))
-                amazon = "Amazon Prime";
 
             //If no streaming options, update heading
             if (netflix.localeCompare("") === 0 && hulu.localeCompare("") === 0 && hbo.localeCompare("") === 0 && amazon.localeCompare("") === 0)
@@ -124,16 +137,19 @@ function request2(url) {
             else
                 heading = title + "\n" + " is streaming on";
 
+
             //Send message with results to content.js
             chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
                 var activeTab = tabs[0];
                 chrome.tabs.sendMessage(activeTab.id, {
                     "message": "alert", "heading": heading, "title": title,
-                    "netflix": netflix, "hulu": hulu, "hbo": hbo, "amazon": amazon});
+                    "netflix": netflix, "hulu": hulu, "hbo": hbo, "amazon": amazon,
+                    "netflixURL": netflixURL, "huluURL": huluURL, "hboURL": hboURL, "amazonURL": amazonURL
+                });
             });
         }
     }
-    xhr2.send();
+    xhr.send();
 }
 
 //Convert html element into a string

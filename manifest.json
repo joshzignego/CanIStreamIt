@@ -2,13 +2,15 @@
   "manifest_version": 2,
   "name": "Can I Stream It?",
   "version": "1.0",
-  "description": "Displays the streaming availability of the movie/TV show with the most similar title to the highlighted text on Netflix, Hulu, Amazon Prime and HBO.",
+  "description": "Displays streaming availability of movie/TV show with most similar title to highlighted text on Netflix, Hulu, Amazon Prime and HBO.",
   "background": {
     "page": "background.html"
   },
   "permissions": [
     "https://reelgood.com/",
-    "http://reelgood.com/"
+    "http://reelgood.com/",
+    "https://justwatch.com/",
+    "http://justwatch.com/"
   ],
   "content_scripts": [
     {
@@ -22,14 +24,10 @@
   "browser_action": {
     "default_icon": "logos/movie16.png"
   },
-
-  //Icons from http://iconshow.me/movie-icon-2
   "icons": {
     "16": "logos/movie16.png",
     "48": "logos/movie48.png",
     "128": "logos/movie128.png"
   },
-
-  //Logos from https://reelgood.com/
   "web_accessible_resources": ["logos/netflix.png", "logos/hulu.png", "logos/amazon.png", "logos/hbo.png"]
 }

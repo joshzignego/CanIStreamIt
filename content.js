@@ -25,19 +25,19 @@ chrome.runtime.onMessage.addListener(
 
             //If can stream to netflix, add logo & link
             if (request.netflix.localeCompare("") !== 0)
-                htmlString += makeHTML("Netflix", "https://www.netflix.com/search?q=" + request.title , netflixPNG_URL);
+                htmlString += makeHTML("Netflix", request.netflixURL, netflixPNG_URL);
 
             //If can stream to hulu, add logo & link
             if (request.hulu.localeCompare("") !== 0)
-                htmlString += makeHTML("Hulu", "https://www.hulu.com/search?q=" + request.title, huluPNG_URL);
+                htmlString += makeHTML("Hulu", request.huluURL, huluPNG_URL);
 
             //If can stream to amazon prime, add logo & link
             if (request.amazon.localeCompare("") !== 0)
-                htmlString += makeHTML("Amazon Prime", "https://www.amazon.com/s/ref=nb_sb_noss_1?url=search-alias%3Dinstant-video&field-keywords=" + request.title, amazonPNG_URL);
+                htmlString += makeHTML("Amazon Prime", request.amazonURL, amazonPNG_URL);
 
             //If can stream to hbo go, add logo & link
             if (request.hbo.localeCompare("") !== 0)
-                htmlString += makeHTML("HBO Go", "https://play.hbogo.com", hboPNG_URL);
+                htmlString += makeHTML("HBO", request.hboURL, hboPNG_URL);
 
             //Sweet Alert with request.heading as the header and htmlString as HTML for the body
             swal({
